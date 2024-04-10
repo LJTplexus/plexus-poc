@@ -1,0 +1,16 @@
+<div>
+  <form class="example-form">
+    <mat-form-field class="example-full-width">
+      <mat-label>Email</mat-label>
+      <input
+        type="email"
+        matInput
+        [formControl]="emailFormControl"
+        placeholder="Ex. pat@example.com"
+      />
+    </mat-form-field>
+  </form>
+
+  <button (click)="addNewHero()">Create new hero</button>
+  <button (click)="searchHero()">Search hero</button>
+</div>
