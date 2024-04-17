@@ -1,0 +1,21 @@
+.container-filter {
+  display: flex;
+  flex-direction: row;
+  margin-left: 1rem;
+}
+
+.filter-button-row {
+  display: table-cell;
+  max-width: 600px;
+}
+
+section {
+  display: table;
+}
+.filter-button-row .mat-mdc-button-base {
+  margin: 8px 8px 8px 0;
+}
+
+.container-form {
+  margin-right: 1rem;
+}

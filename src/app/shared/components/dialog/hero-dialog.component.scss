@@ -1,0 +1,37 @@
+.mr-3 {
+  margin-right: 10px;
+}
+
+.close-button {
+  display: flex;
+  justify-content: right;
+}
+
+.mat-mdc-dialog-container,
+.mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 35px;
+}
+
+.mat-dialog-container {
+  border-radius: 35px !important;
+}
+
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-shape: 35px;
+}
+
+.mat-dialog-container {
+  border-radius: 35px !important;
+}
+.custom .mat-dialog-container {
+  border-radius: 35px !important;
+}
+
+.fly-label {
+  margin-right: 2rem;
+}
+
+.button-actions {
+  display: flex;
+  justify-content: right;
+}

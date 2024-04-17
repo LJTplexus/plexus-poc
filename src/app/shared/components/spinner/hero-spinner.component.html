@@ -1,0 +1,9 @@
+<div *ngIf="showSpinner()" [ngClass]="{ spinnerWrapper: showSpinner() }">
+  <embed
+    src="../../../../assets/monkey.png"
+    width="500"
+    height="600"
+    alt="spinner loader"
+    [ngClass]="{ show: showSpinner(), hide: !showSpinner() }"
+  />
+</div>

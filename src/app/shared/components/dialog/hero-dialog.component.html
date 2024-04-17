@@ -1,0 +1,67 @@
+<div class="close-button">
+  <button mat-flat-button (click)="closeClick()">
+    <i class="material-icons">close</i>
+  </button>
+</div>
+
+<h2 mat-dialog-title *ngIf="!isEdit">Create new hero</h2>
+<h2 mat-dialog-title *ngIf="isEdit">Edit hero</h2>
+
+<mat-dialog-content>
+  <div class="col">
+    <form [formGroup]="form" class="example-form">
+      <div class="col">
+        <mat-form-field class="example-full-width mr-3">
+          <mat-label>Name</mat-label>
+          <input
+            type="text"
+            maxlength="15"
+            matInput
+            formControlName="frm_heroName"
+            placeholder="Batman"
+            [ngModel]="selectedHero.heroName | uppercase"
+            (ngModelChange)="selectedHero.heroName = $event"
+          />
+        </mat-form-field>
+      </div>
+      <div class="col">
+        <mat-form-field class="example-full-width">
+          <mat-label>Description</mat-label>
+          <input
+            type="test"
+            matInput
+            maxlength="20"
+            formControlName="frm_description"
+            placeholder="Amazing hero"
+            [(ngModel)]="selectedHero.description"
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="col">
+        <mat-form-field class="example-full-width mr-3">
+          <mat-label>Company</mat-label>
+          <input
+            type="text"
+            matInput
+            formControlName="frm_company"
+            placeholder="Marvel"
+            maxlength="15"
+            [(ngModel)]="selectedHero.company"
+          />
+        </mat-form-field>
+      </div>
+      <div class="col">
+        <mat-label class="fly-label">Can fly?</mat-label>
+        <mat-slide-toggle
+          color="primary"
+          formControlName="frm_canFly"
+          [(ngModel)]="selectedHero.canFly"
+        ></mat-slide-toggle>
+      </div>
+    </form>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions class="button-actions">
+  <button mat-flat-button color="primary" (click)="onSubmit()">Submit</button>
+</mat-dialog-actions>

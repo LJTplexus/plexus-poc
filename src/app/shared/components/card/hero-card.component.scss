@@ -1,0 +1,24 @@
+.hero-card {
+  border: 1px solid black;
+  width: 20rem;
+  margin: 1rem;
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.button-actions {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.description-container {
+  height: 5rem;
+}
+
+.company-container,
+.can-fly-container {
+  display: flex;
+}

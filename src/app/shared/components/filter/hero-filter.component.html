@@ -1,0 +1,32 @@
+<div class="container-filter">
+  <div>
+    <form [formGroup]="form" class="container-form">
+      <mat-form-field>
+        <mat-label>Name</mat-label>
+        <input
+          type="text"
+          matInput
+          formControlName="frm_heroName"
+          placeholder="Batman"
+          [ngModel]="heroList.heroName | titlecase"
+          (ngModelChange)="heroList.heroName = $event"
+        />
+      </mat-form-field>
+    </form>
+  </div>
+  <section>
+    <div class="filter-button-row mr-2">
+      <button
+        mat-flat-button
+        color="primary"
+        (click)="searchHeroByFilter(heroList.heroName)"
+      >
+        Search hero
+      </button>
+
+      <button mat-flat-button color="primary" (click)="addNewHero()">
+        Create new hero
+      </button>
+    </div>
+  </section>
+</div>

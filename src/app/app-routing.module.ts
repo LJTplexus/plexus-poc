@@ -1,27 +1,23 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { ApiService } from './services/api/api.service';
+import { ApiService } from './core/api/api.service';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { HttpErrorsInterceptor } from './services/http-errors/http-errors.interceptor';
+import { HttpErrorsInterceptor } from './core/http-errors/http-errors.interceptor';
+import { SharedService } from './shared/services/shared.service';
 
 const routes: Routes = [
   {
     path: '',
     loadChildren: () =>
-      import('./components/hero-component.module').then((m) => m.HeroModule),
+      import('./views/components/hero-component.module').then(
+        (m) => m.HeroModule
+      ),
   },
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule],
-  providers: [
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: HttpErrorsInterceptor,
-      multi: true,
-    },
-    ApiService,
-  ],
+  providers: [ApiService, SharedService],
 })
 export class AppRoutingModule {}
