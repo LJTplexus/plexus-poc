@@ -1,9 +1,15 @@
 <hero-header-component></hero-header-component>
-
-<!-- <hero-spinner-component></hero-spinner-component> -->
-
 <div>
-  <hero-filter-component> </hero-filter-component>
+  <hero-filter-component
+    (modifyHeroEvent)="eventReload()"
+    (newHeroEvent)="createNewHero($event)"
+    (filterHeroNameEvent)="searchHeroFilterName($event)"
+  >
+  </hero-filter-component>
 
-  <hero-card-component></hero-card-component>
+  <hero-card-component
+    [heroData]="heroData"
+    (heroDataModifyEvent)="editHero($event)"
+    (heroDataDeleteEvent)="deleteHero($event)"
+  ></hero-card-component>
 </div>

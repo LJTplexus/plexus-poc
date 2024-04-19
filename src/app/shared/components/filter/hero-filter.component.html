@@ -10,6 +10,7 @@
           placeholder="Batman"
           [ngModel]="heroList.heroName | titlecase"
           (ngModelChange)="heroList.heroName = $event"
+          (keyup.enter)="searchHeroFilter(heroList.heroName)"
         />
       </mat-form-field>
     </form>
@@ -19,7 +20,7 @@
       <button
         mat-flat-button
         color="primary"
-        (click)="searchHeroByFilter(heroList.heroName)"
+        (click)="searchHeroFilter(heroList.heroName)"
       >
         Search hero
       </button>

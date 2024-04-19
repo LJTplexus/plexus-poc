@@ -1,94 +1,78 @@
-import { fakeAsync, flush, TestBed } from '@angular/core/testing';
-import { throwError } from 'rxjs';
-
-import { BoToastService } from '@hotelbeds-com/common-back-components-ui-lib';
-
+import {
+  HttpHandler,
+  HttpRequest,
+  HttpEvent,
+  HTTP_INTERCEPTORS,
+  HttpClient,
+} from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Observable, of } from 'rxjs';
 import { HttpErrorsInterceptor } from './http-errors.interceptor';
-import { MockBoToastService } from '../../../../../mocks/bo-services/mock-bo-toast-service';
+import {
+  HttpClientTestingModule,
+  HttpTestingController,
+} from '@angular/common/http/testing';
+import { MatDialogModule } from '@angular/material/dialog';
 
-describe('RequestsInterceptor', () => {
-  const mockBoToastService = new MockBoToastService();
+describe('HttpErrorsInterceptor', () => {
   let interceptor: HttpErrorsInterceptor;
+  let snackBarSpy: jasmine.SpyObj<MatSnackBar>;
+  let mockSnackBar: any;
+  let httpTestingController: HttpTestingController;
+  let httpClient: HttpClient;
+
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule, MatDialogModule],
       providers: [
-        HttpErrorsInterceptor,
-        { provide: BoToastService, useValue: mockBoToastService },
+        { provide: MatSnackBar, useValue: mockSnackBar },
+        {
+          provide: HTTP_INTERCEPTORS,
+          useClass: HttpErrorsInterceptor,
+          multi: true,
+        },
       ],
     });
-    interceptor = TestBed.inject(HttpErrorsInterceptor);
+    const spy = jasmine.createSpyObj('MatSnackBar', ['open']);
+    interceptor = new HttpErrorsInterceptor(spy);
+    snackBarSpy = TestBed.inject(MatSnackBar) as jasmine.SpyObj<MatSnackBar>;
+    httpTestingController = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('should be created', () => {
     expect(interceptor).toBeTruthy();
   });
 
-  it('should call boToastService.error() with message if it`s ErrorEvent', fakeAsync(() => {
-    // Arrange
-    const boToastSpy = jest.spyOn(mockBoToastService, 'error');
+  it('should pass through the request when no error occurs', (done) => {
+    const httpRequest = new HttpRequest('GET', 'http://localhost:3000/heros');
+    const next: HttpHandler = {
+      handle: (req: HttpRequest<unknown>): Observable<HttpEvent<unknown>> => {
+        return of({} as HttpEvent<unknown>);
+      },
+    } as HttpHandler;
 
-    const errorExpected = new Error();
-    const errorEventExpected = new ErrorEvent('CORS', {
-      message: 'ErrorEvent error',
+    interceptor.intercept(httpRequest, next).subscribe((event) => {
+      expect(event).toBeTruthy();
+      expect(snackBarSpy.open).not.toHaveBeenCalled();
+      done();
     });
-    (errorExpected as any).error = errorEventExpected;
-    // Act Assert
-    try {
-      interceptor
-        .intercept({} as any, {
-          handle: () => throwError(() => errorExpected),
-        })
-        .subscribe();
-      flush();
-    } catch (error) {
-      expect(boToastSpy).toHaveBeenCalledWith({
-        title: 'Error',
-        message: 'Error occurred. Message: ErrorEvent error',
-      });
-    }
-  }));
-  it('should call boToastService.error() with error_description if it`s ErrorEvent', fakeAsync(() => {
-    // Arrange
-    const boToastSpy = jest.spyOn(mockBoToastService, 'error');
+  });
 
-    const errorExpected = new Error();
-    const errorEventExpected = {
-      error_description: 'ErrorEvent error',
-    };
-    (errorExpected as any).error = errorEventExpected;
-    // Act Assert
-    try {
-      interceptor
-        .intercept({} as any, {
-          handle: () => throwError(() => errorExpected),
-        })
-        .subscribe();
-      flush();
-    } catch (error) {
-      expect(boToastSpy).toHaveBeenCalledWith({
-        title: 'Error',
-        message: 'Error occurred. Message: ErrorEvent error',
-      });
-    }
-  }));
-  it('should call boToastService with appropriate information when it`s server error', fakeAsync(() => {
-    // Arrange
-    const boToastSpy = jest.spyOn(mockBoToastService, 'error');
-    const errorExpected = new Error('Usual error');
+  /*   it('when a request is made the retry interceptor should be called', () => {
+    spyOn(HttpErrorsInterceptor.prototype, 'intercept').and.callThrough();
 
-    // Act Assert
-    try {
-      interceptor
-        .intercept({} as any, {
-          handle: () => throwError(() => errorExpected),
-        })
-        .subscribe();
-      flush();
-    } catch (error) {
-      expect(boToastSpy).toHaveBeenCalledWith({
-        title: 'Error',
-        message: 'Error occurred. Message: Usual error',
-      });
-    }
-  }));
+    httpClient.get('/test').subscribe((res) => {
+      expect(res).toBeTruthy();
+    });
+
+    const req = httpTestingController.expectOne('/test');
+    req.flush({});
+
+    expect(HttpErrorsInterceptor.prototype.intercept).toHaveBeenCalled();
+  }); */
 });

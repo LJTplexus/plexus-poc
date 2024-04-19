@@ -1,28 +1,15 @@
-import { MaterialModule } from './material.module';
 import { TestBed } from '@angular/core/testing';
-import { CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA } from '@angular/core';
+import { MaterialModule } from './material.module';
 
-describe('MaterialModule ', () => {
-  let module: MaterialModule;
-
+describe('MaterialModule', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [
-        /*           { },
-          { provide: MatDatepickerModule, useFactory: generator.matDatepickerModuleStub() },,
-          { provide: MAT_SELECT_SCROLL_STRATEGY } */
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA],
-    });
-    module = new MaterialModule();
+      imports: [MaterialModule],
+    }).compileComponents();
   });
 
-  it('should create module', () => {
-    expect(module).toBeTruthy();
+  it('should import all the required Angular Material modules', () => {
+    const materialModule = TestBed.inject(MaterialModule);
+    expect(materialModule).toBeTruthy();
   });
-
-  /*     it('should run #scrollFactory', () => {
-      const overlay = {} as Overlay;
-      expect(scrollFactory(overlay)).toBeTruthy();
-    }); */
 });

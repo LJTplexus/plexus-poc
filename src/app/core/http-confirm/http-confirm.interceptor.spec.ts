@@ -1,92 +1,89 @@
-import { fakeAsync, flush, TestBed } from '@angular/core/testing';
+import {
+  HttpClient,
+  HTTP_INTERCEPTORS,
+  HttpRequest,
+} from '@angular/common/http';
+import {
+  HttpTestingController,
+  HttpClientTestingModule,
+} from '@angular/common/http/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { throwError } from 'rxjs';
-import { BoToastService } from '@hotelbeds-com/common-back-components-ui-lib';
-import { MockBoToastService } from '../../../../../mocks/bo-services/mock-bo-toast-service';
+import { ConfirmationDialogComponent } from 'src/app/shared/components/dialog-confirm/dialog-confirm.component';
 import { HttpConfirmInterceptor } from './http-confirm.interceptor';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
-describe('RequestsInterceptor', () => {
-  const mockBoToastService = new MockBoToastService();
+describe('HttpConfirmInterceptor', () => {
+  let httpMock: HttpTestingController;
+  let httpClient: HttpClient;
+  let dialog: MatDialog;
+  let mockSnackBar: any;
   let interceptor: HttpConfirmInterceptor;
+
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule, MatDialogModule],
       providers: [
-        HttpConfirmInterceptor,
-        { provide: BoToastService, useValue: mockBoToastService },
+        { provide: MatSnackBar, useValue: mockSnackBar },
+        {
+          provide: HTTP_INTERCEPTORS,
+          useClass: HttpConfirmInterceptor,
+          multi: true,
+        },
       ],
     });
-    interceptor = TestBed.inject(HttpConfirmInterceptor);
+    const spyDialog = jasmine.createSpyObj('MatDialog', ['open']);
+    const spySnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
+    interceptor = new HttpConfirmInterceptor(spyDialog, spySnackBar);
+    httpMock = TestBed.inject(HttpTestingController);
+    httpClient = TestBed.inject(HttpClient);
+    dialog = TestBed.inject(MatDialog);
+    mockSnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
   });
 
   it('should be created', () => {
     expect(interceptor).toBeTruthy();
   });
 
-  it('should call boToastService.error() with message if it`s ErrorEvent', fakeAsync(() => {
-    // Arrange
-    const boToastSpy = jest.spyOn(mockBoToastService, 'error');
+  it('should intercept DELETE requests and display confirmation dialog', () => {
+    spyOn(dialog, 'open').and.returnValue({
+      afterClosed: () => ({ pipe: () => {} }),
+    } as any);
 
-    const errorExpected = new Error();
-    const errorEventExpected = new ErrorEvent('CORS', {
-      message: 'ErrorEvent error',
+    httpClient.delete('http://localhost:3000/heros').subscribe();
+
+    expect(dialog.open).toHaveBeenCalledWith(ConfirmationDialogComponent, {
+      width: '500px',
+      height: '200px',
+      data: { message: '¿Are you sure to delete?' },
     });
-    (errorExpected as any).error = errorEventExpected;
-    // Act Assert
-    try {
-      interceptor
-        .intercept({} as any, {
-          handle: () => throwError(() => errorExpected),
-        })
-        .subscribe();
-      flush();
-    } catch (error) {
-      expect(boToastSpy).toHaveBeenCalledWith({
-        title: 'Error',
-        message: 'Error occurred. Message: ErrorEvent error',
-      });
-    }
-  }));
-  it('should call boToastService.error() with error_description if it`s ErrorEvent', fakeAsync(() => {
-    // Arrange
-    const boToastSpy = jest.spyOn(mockBoToastService, 'error');
+  });
 
-    const errorExpected = new Error();
-    const errorEventExpected = {
-      error_description: 'ErrorEvent error',
-    };
-    (errorExpected as any).error = errorEventExpected;
-    // Act Assert
-    try {
-      interceptor
-        .intercept({} as any, {
-          handle: () => throwError(() => errorExpected),
-        })
-        .subscribe();
-      flush();
-    } catch (error) {
-      expect(boToastSpy).toHaveBeenCalledWith({
-        title: 'Error',
-        message: 'Error occurred. Message: ErrorEvent error',
-      });
-    }
-  }));
-  it('should call boToastService with appropriate information when it`s server error', fakeAsync(() => {
-    // Arrange
-    const boToastSpy = jest.spyOn(mockBoToastService, 'error');
-    const errorExpected = new Error('Usual error');
+  it('should throw an error if user cancels the action', fakeAsync(() => {
+    const request = new HttpRequest('DELETE', 'http://localhost:3000/heros');
+    spyOn(dialog, 'open').and.returnValue({
+      afterClosed: () => ({ pipe: () => throwError('Action canceled') }),
+    } as any);
 
-    // Act Assert
-    try {
-      interceptor
-        .intercept({} as any, {
-          handle: () => throwError(() => errorExpected),
-        })
-        .subscribe();
-      flush();
-    } catch (error) {
-      expect(boToastSpy).toHaveBeenCalledWith({
-        title: 'Error',
-        message: 'Error occurred. Message: Usual error',
-      });
-    }
+    httpClient.delete('http://localhost:3000/heros').subscribe(
+      () => fail('Should have thrown an error'),
+      (error) => expect(error).toBe('Action canceled')
+    );
+    tick();
+  }));
+
+  it('should handle unexpected errors', fakeAsync(() => {
+    const request = new HttpRequest('DELETE', 'http://localhost:3000/heros');
+    const error = new Error('Internal server error');
+    spyOn(dialog, 'open').and.returnValue({
+      afterClosed: () => ({ pipe: () => throwError(error) }),
+    } as any);
+
+    httpClient.delete('http://localhost:3000/heros').subscribe(
+      () => fail('Should have thrown an error'),
+      (err) => expect(err).toBe(error)
+    );
+    tick();
   }));
 });

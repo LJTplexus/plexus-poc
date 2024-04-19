@@ -1,4 +1,10 @@
-import { Component, ViewContainerRef } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  ViewContainerRef,
+} from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from 'src/app/core/api/api.service';
 import { HeroDialogComponent } from '../dialog/hero-dialog.component';
@@ -13,6 +19,10 @@ import { SpinnerService } from '../../services/spinner.services';
   styleUrls: ['./hero-filter.component.scss'],
 })
 export class HeroFilterComponent {
+  @Output() filterHeroNameEvent = new EventEmitter<string>();
+  @Output() newHeroEvent = new EventEmitter<any>();
+  @Output() modifyHeroEvent = new EventEmitter<any>();
+
   form: FormGroup;
   heroList: HeroList = {
     id: 0,
@@ -22,12 +32,9 @@ export class HeroFilterComponent {
     canFly: false,
   };
   constructor(
-    private readonly _service: ApiService,
     public dialog: MatDialog,
     public _snackBar: MatSnackBar,
-    private formBuilder: FormBuilder,
-    private readonly _view: ViewContainerRef,
-    private readonly _spinnerService: SpinnerService
+    private formBuilder: FormBuilder
   ) {
     this.form = this.formBuilder.group({
       frm_heroName: ['', [Validators.required, Validators.maxLength(15)]],
@@ -43,10 +50,7 @@ export class HeroFilterComponent {
       .afterClosed()
       .subscribe((result) => {
         if (result) {
-          /*           this._spinnerService.show(this._view); */
-          this._snackBar.open(`Create new hero: ${result} `);
-          this._service.getHero();
-          /*           this._spinnerService.hide(this._view); */
+          this.newHeroEvent.emit(result);
         } else {
           this._snackBar.open(`Cannot create new hero: ${result}`, '', {
             duration: 2000,
@@ -63,17 +67,15 @@ export class HeroFilterComponent {
       .afterClosed()
       .subscribe((result) => {
         if (result) {
-          this._service.getHero();
+          this.modifyHeroEvent.emit();
         } else {
-          alert('error component');
+          this._snackBar.open(`Cannot create new hero: ${result}`, '', {
+            duration: 2000,
+          });
         }
       });
   }
-
-  searchHeroByFilter(heroId: string): void {
-    this._service.getHeroByFilterName(heroId).subscribe(
-      (data) => {},
-      (error) => this._snackBar.open(error)
-    );
+  searchHeroFilter(heroId: string): void {
+    this.filterHeroNameEvent.emit(heroId);
   }
 }

@@ -29,7 +29,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   imports: [
     MatButtonModule,
     MatButtonToggleModule,
-    MatDatepickerModule,
     MatDialogModule,
     MatExpansionModule,
     MatFormFieldModule,
@@ -60,7 +59,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatAccordion,
     MatButtonModule,
     MatButtonToggleModule,
-    MatDatepickerModule,
     MatDialogModule,
     MatExpansionModule,
     MatFormFieldModule,
@@ -73,7 +71,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatSnackBarModule,
     MatInputModule,
   ],
-  providers: [MatDatepickerModule],
+  providers: [],
   schemas: [CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA],
 })
 export class MaterialModule {}

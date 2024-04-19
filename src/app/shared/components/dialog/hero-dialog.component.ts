@@ -51,12 +51,6 @@ export class HeroDialogComponent {
   }
 
   onSubmit(): void {
-    if (this.isEdit === true) {
-      this._service.editHero(this.selectedHero.id, this.selectedHero);
-      this.dialogRef.close(true);
-    } else {
-      this._service.createHero(this.selectedHero);
-      this.dialogRef.close(true);
-    }
+    this.dialogRef.close(this.selectedHero);
   }
 }

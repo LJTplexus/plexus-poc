@@ -15,10 +15,8 @@
         </div>
         <div class="can-fly-container">
           <span class="mr-1" [innerHTML]="canFlyInfo | bold"></span>
-          <div *ngIf="hero.canFly"><p>Can fly</p></div>
-          <div *ngIf="!hero.canFly">
-            <p>{{ hero.canFly }}</p>
-          </div>
+          <p *ngIf="hero.canFly">Can fly</p>
+          <p *ngIf="!hero.canFly">Can't Fly</p>
         </div>
       </mat-card-content>
       <mat-card-actions class="button-actions">

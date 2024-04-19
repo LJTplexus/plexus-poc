@@ -1,4 +1,7 @@
-<div>dialog confirm</div>
-
-<button (click)="onConfirm()">Ok</button>
-<button (click)="onCancel()">no</button>
+<h2 class="header-message">{{ data.message }}</h2>
+<br />
+<br />
+<div class="button-actions">
+  <button mat-flat-button color="primary" (click)="onConfirm()">Ok</button>
+  <button mat-flat-button color="warn" (click)="onCancel()">No</button>
+</div>

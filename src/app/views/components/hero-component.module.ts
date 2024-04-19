@@ -7,10 +7,9 @@ import { HeroRoutingModule } from './hero-routing.module';
 import { MaterialModule } from '../../shared/components/modules/material/material.module';
 import { HeroDialogComponent } from '../../shared/components/dialog/hero-dialog.component';
 import { CommonModule } from '@angular/common';
-import { BoldPipe } from 'src/app/shared/components/pipe/bold.pipe';
-import { FilterPipe } from 'src/app/shared/components/pipe/filter.pipe';
 import { SpinnerModule } from 'src/app/shared/components/modules/spinner/spinner.module';
 import { ConfirmationDialogComponent } from 'src/app/shared/components/dialog-confirm/dialog-confirm.component';
+import { PipesModule } from 'src/app/shared/components/modules/pipes/pipes.module';
 
 @NgModule({
   declarations: [
@@ -19,11 +18,15 @@ import { ConfirmationDialogComponent } from 'src/app/shared/components/dialog-co
     HeroHeaderComponent,
     HeroCardComponent,
     HeroDialogComponent,
-    BoldPipe,
-    FilterPipe,
     ConfirmationDialogComponent,
   ],
-  imports: [HeroRoutingModule, MaterialModule, CommonModule, SpinnerModule],
+  imports: [
+    HeroRoutingModule,
+    MaterialModule,
+    CommonModule,
+    SpinnerModule,
+    PipesModule,
+  ],
   providers: [],
   exports: [HeroComponentComponent],
 })

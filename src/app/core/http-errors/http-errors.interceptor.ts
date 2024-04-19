@@ -13,7 +13,7 @@ import { Observable, catchError, throwError } from 'rxjs';
 export class HttpErrorsInterceptor implements HttpInterceptor {
   constructor(private _snackBar: MatSnackBar) {}
 
-  private openSnackBar(message: string) {
+  public openSnackBar(message: string) {
     this._snackBar.open(`Error. ${message}`, '', { duration: 2000 });
   }
 
