@@ -1,17 +1,7 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-  ViewContainerRef,
-} from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { HeroList } from '../../model/hero.interface';
-import { ApiService } from 'src/app/core/api/api.service';
 import { MatDialog } from '@angular/material/dialog';
 import { HeroDialogComponent } from '../dialog/hero-dialog.component';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { SpinnerService } from '../../services/spinner.services';
 
 @Component({
   selector: 'hero-card-component',
@@ -26,23 +16,16 @@ export class HeroCardComponent implements OnInit {
   companyName: string = '* Company: *';
   canFlyInfo: string = '* This hero: *';
 
-  constructor(
-    public dialog: MatDialog,
-    public _snackBar: MatSnackBar,
-    private readonly _view: ViewContainerRef,
-    private readonly _spinnerService: SpinnerService
-  ) {}
+  constructor(public dialog: MatDialog) {}
 
   ngOnInit() {
     this.setHeroCard();
   }
 
   setHeroCard(): void {
-    this._spinnerService.show(this._view);
     this.heroData.map((element: HeroList) => {
       return this.buildDto(element);
     });
-    this._spinnerService.hide(this._view);
   }
 
   buildDto(element: any): HeroList {
@@ -64,10 +47,6 @@ export class HeroCardComponent implements OnInit {
       .subscribe((result) => {
         if (result) {
           this.heroDataModifyEvent.emit(result);
-        } else {
-          this._snackBar.open(`Error edit hero: ${result} `, '', {
-            duration: 2000,
-          });
         }
       });
   }

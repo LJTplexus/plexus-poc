@@ -17,7 +17,7 @@ import { SpinnerService } from 'src/app/shared/services/spinner.services';
   templateUrl: './hero-component.component.html',
   styleUrls: ['./hero-component.component.scss'],
 })
-export class HeroComponentComponent implements OnInit {
+export class HeroComponent implements OnInit {
   @Input() filterHeroNameEvent = new EventEmitter<string>();
   @Input() heroDataModifyEvent = new EventEmitter<HeroList>();
   @Input() newHeroEvent = new EventEmitter<HeroList>();
@@ -25,9 +25,10 @@ export class HeroComponentComponent implements OnInit {
 
   @Output() heroData: HeroList[] = [];
 
+  isLoading: boolean = true;
+
   constructor(
     private readonly _service: ApiService,
-    public dialog: MatDialog,
     public _snackBar: MatSnackBar,
     private readonly _view: ViewContainerRef,
     private readonly _spinnerService: SpinnerService
@@ -40,8 +41,10 @@ export class HeroComponentComponent implements OnInit {
   public searchHero(): void {
     this._spinnerService.show(this._view);
     this._service.getHero().subscribe((data) => {
-      this.heroData = data;
-      this._spinnerService.hide(this._view);
+      if (data) {
+        this.heroData = data;
+        this._spinnerService.hide(this._view);
+      }
     });
   }
 
@@ -62,10 +65,6 @@ export class HeroComponentComponent implements OnInit {
         });
         this.heroData = data;
         this.searchHero();
-      } else {
-        this._snackBar.open(`Cannot create new hero: ${data}`, '', {
-          duration: 2000,
-        });
       }
     });
   }

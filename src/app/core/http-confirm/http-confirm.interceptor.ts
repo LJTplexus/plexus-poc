@@ -6,12 +6,11 @@ import {
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { Observable, catchError, switchMap, throwError } from 'rxjs';
 import { ConfirmationDialogComponent } from 'src/app/shared/components/dialog-confirm/dialog-confirm.component';
 @Injectable()
 export class HttpConfirmInterceptor implements HttpInterceptor {
-  constructor(public dialog: MatDialog, public _snackBar: MatSnackBar) {}
+  constructor(public dialog: MatDialog) {}
 
   intercept(
     request: HttpRequest<any>,

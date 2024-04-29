@@ -1,81 +1,102 @@
-import { ComponentFixture, TestBed, async } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { ViewContainerRef } from '@angular/core';
 import { of } from 'rxjs';
-import { ApiService } from 'src/app/core/api/api.service';
 import { HeroList } from '../../model/hero.interface';
-import { SpinnerService } from '../../services/spinner.services';
 import { HeroCardComponent } from './hero-card.component';
 
 describe('HeroCardComponent', () => {
   let component: HeroCardComponent;
   let fixture: ComponentFixture<HeroCardComponent>;
-  let mockDialog: any;
-  let mockSnackBar: any;
-  let mockApiService: any;
-  let mockViewContainerRef: any;
-  let mockSpinnerService: any;
+  let dialog: jasmine.SpyObj<MatDialog>;
+  const mockHeroData: HeroList[] = [
+    {
+      id: 1,
+      heroName: 'Test Hero',
+      description: 'Test Description',
+      company: 'Test Company',
+      canFly: true,
+    },
+    {
+      id: 2,
+      heroName: 'Test Hero',
+      description: 'Test Description',
+      company: 'Test Company',
+      canFly: true,
+    },
+  ];
 
   beforeEach(() => {
-    mockDialog = jasmine.createSpyObj('MatDialog', ['open']);
-    mockSnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
-    mockApiService = jasmine.createSpyObj('ApiService', ['editHero']);
-    mockViewContainerRef = {} as ViewContainerRef;
-    mockSpinnerService = jasmine.createSpyObj('SpinnerService', [
-      'show',
-      'hide',
-    ]);
+    const mockDialog = jasmine.createSpyObj('MatDialog', ['open']);
 
     TestBed.configureTestingModule({
       declarations: [HeroCardComponent],
-      providers: [
-        { provide: MatDialog, useValue: mockDialog },
-        { provide: MatSnackBar, useValue: mockSnackBar },
-        { provide: ApiService, useValue: mockApiService },
-        { provide: ViewContainerRef, useValue: mockViewContainerRef },
-        { provide: SpinnerService, useValue: mockSpinnerService },
-      ],
+      providers: [{ provide: MatDialog, useValue: mockDialog }],
     }).compileComponents();
+
+    dialog = TestBed.inject(MatDialog) as jasmine.SpyObj<MatDialog>;
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(HeroCardComponent);
     component = fixture.componentInstance;
+    fixture.detectChanges();
   });
 
   it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should emit heroDataModifyEvent when editHero is called', () => {
-    const mockHeroData: HeroList = {
-      id: 1,
-      heroName: 'Test Hero',
-      description: 'Test Description',
-      company: 'Test Company',
-      canFly: true,
-    };
-    component.heroData = [mockHeroData];
-    const modifiedHeroData: HeroList = {
-      ...mockHeroData,
-      description: 'Modified Description',
-    };
-    mockDialog.open.and.returnValue({
-      afterClosed: () => of(modifiedHeroData),
-    });
+  it('should call setHeroCard function'),
+    () => {
+      component.heroData = mockHeroData;
 
-    component.editHero(1);
+      spyOn(component, 'setHeroCard');
 
-    expect(component.heroDataModifyEvent.emit).toHaveBeenCalledWith(
-      modifiedHeroData
-    );
+      component.setHeroCard();
+
+      expect(component.setHeroCard).toHaveBeenCalled();
+    };
+
+  it('should call setHeroCard method on ngOnInit', () => {
+    component.heroData = mockHeroData;
+    spyOn(component, 'setHeroCard');
+    component.ngOnInit();
+    expect(component.setHeroCard).toHaveBeenCalled();
   });
 
-  it('should emit heroDataDeleteEvent when deleteHero is called', () => {
-    const heroId = 1;
-    component.deleteHero(heroId);
+  it('should set hero card properly', () => {
+    component.heroData = mockHeroData;
+    component.setHeroCard();
+    expect(component.heroData.length).toBe(2);
+  });
 
+  it('should emit heroDataDeleteEvent on deleteHero', () => {
+    const heroId = 1;
+    spyOn(component.heroDataDeleteEvent, 'emit');
+    component.deleteHero(heroId);
     expect(component.heroDataDeleteEvent.emit).toHaveBeenCalledWith(heroId);
+  });
+
+  it('should open dialog and emit event on editHero', () => {
+    const heroId = 1;
+    const editedHero: HeroList = {
+      id: 1,
+      heroName: 'Hero 1',
+      description: 'Description 1',
+      company: 'Company 1',
+      canFly: true,
+    };
+    const dialogRefSpyObj = jasmine.createSpyObj({
+      afterClosed: of(editedHero),
+    });
+    dialog.open.and.returnValue(dialogRefSpyObj);
+    spyOn(component.heroDataModifyEvent, 'emit');
+
+    component.editHero(heroId);
+
+    expect(dialog.open).toHaveBeenCalledOnceWith(jasmine.any(Function), {
+      data: { id: heroId },
+    });
+    expect(component.heroDataModifyEvent.emit).toHaveBeenCalledWith(editedHero);
   });
 });

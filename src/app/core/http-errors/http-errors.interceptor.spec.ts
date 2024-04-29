@@ -4,29 +4,36 @@ import {
   HttpEvent,
   HTTP_INTERCEPTORS,
   HttpClient,
+  HttpErrorResponse,
 } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { HttpErrorsInterceptor } from './http-errors.interceptor';
 import {
   HttpClientTestingModule,
   HttpTestingController,
 } from '@angular/common/http/testing';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MaterialModule } from 'src/app/shared/components/modules/material/material.module';
 
 describe('HttpErrorsInterceptor', () => {
   let interceptor: HttpErrorsInterceptor;
   let snackBarSpy: jasmine.SpyObj<MatSnackBar>;
-  let mockSnackBar: any;
+  let mockSnackBar: jasmine.SpyObj<MatSnackBar>;
   let httpTestingController: HttpTestingController;
-  let httpClient: HttpClient;
+  let mockHttpHandler: jasmine.SpyObj<HttpHandler>;
+  let mockHttpRequest: jasmine.SpyObj<HttpRequest<unknown>>;
 
   beforeEach(() => {
+    mockSnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
+    mockHttpHandler = jasmine.createSpyObj('HttpHandler', ['handle']);
+    mockHttpRequest = jasmine.createSpyObj('HttpRequest', ['clone']);
+
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, MatDialogModule],
+      imports: [HttpClientTestingModule, MaterialModule],
       providers: [
         { provide: MatSnackBar, useValue: mockSnackBar },
+        HttpErrorsInterceptor,
         {
           provide: HTTP_INTERCEPTORS,
           useClass: HttpErrorsInterceptor,
@@ -34,8 +41,8 @@ describe('HttpErrorsInterceptor', () => {
         },
       ],
     });
-    const spy = jasmine.createSpyObj('MatSnackBar', ['open']);
-    interceptor = new HttpErrorsInterceptor(spy);
+
+    interceptor = new HttpErrorsInterceptor(mockSnackBar);
     snackBarSpy = TestBed.inject(MatSnackBar) as jasmine.SpyObj<MatSnackBar>;
     httpTestingController = TestBed.inject(HttpTestingController);
   });
@@ -63,16 +70,26 @@ describe('HttpErrorsInterceptor', () => {
     });
   });
 
-  /*   it('when a request is made the retry interceptor should be called', () => {
-    spyOn(HttpErrorsInterceptor.prototype, 'intercept').and.callThrough();
-
-    httpClient.get('/test').subscribe((res) => {
-      expect(res).toBeTruthy();
+  it('should open snackbar and return error message', (done) => {
+    const statusMessageError = 'Error TEXT';
+    const errorResponse = new HttpErrorResponse({
+      statusText: statusMessageError,
     });
 
-    const req = httpTestingController.expectOne('/test');
-    req.flush({});
+    mockSnackBar.open.and.stub();
 
-    expect(HttpErrorsInterceptor.prototype.intercept).toHaveBeenCalled();
-  }); */
+    const result = interceptor.intercept(new HttpRequest('GET', 'test'), {
+      handle: () => throwError(errorResponse),
+    });
+
+    result.subscribe(
+      () => {},
+      (error) => {
+        expect(mockSnackBar.open).toHaveBeenCalledWith(`Error: ${error}`, '', {
+          duration: 2000,
+        });
+        done();
+      }
+    );
+  });
 });

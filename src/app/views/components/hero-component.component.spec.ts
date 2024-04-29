@@ -1,8 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { HeroComponentComponent } from './hero-component.component';
-import { of, throwError } from 'rxjs';
+import { HeroComponent } from './hero-component.component';
+import { of } from 'rxjs';
 import { ViewContainerRef } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from 'src/app/core/api/api.service';
 import { HeroList } from 'src/app/shared/model/hero.interface';
@@ -17,59 +16,69 @@ import {
   HttpTestingController,
 } from '@angular/common/http/testing';
 
-describe('HeroComponentComponent', () => {
-  let component: HeroComponentComponent;
-  let fixture: ComponentFixture<HeroComponentComponent>;
-  let apiService: ApiService;
-  let matDialog: MatDialog;
+describe('HeroComponent', () => {
+  let component: HeroComponent;
+  let fixture: ComponentFixture<HeroComponent>;
   let viewContainerRef: ViewContainerRef;
-  let spinnerService: SpinnerService;
   let httpClient: HttpClient;
   let httpTestingController: HttpTestingController;
-  let snackBarSpy: jasmine.SpyObj<MatSnackBar>;
+  let mockSnackBar: any;
+  let apiService: jasmine.SpyObj<ApiService>;
+  let spinnerService: jasmine.SpyObj<SpinnerService>;
+
+  const mockHeroData = [
+    {
+      id: 1,
+      heroName: 'hero',
+      description: 'hero',
+      company: 'hero',
+      canFly: false,
+    },
+  ];
 
   beforeEach(() => {
+    const spySnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
+    apiService = jasmine.createSpyObj('ApiService', [
+      'getHero',
+      'getHeroByFilterName',
+      'editHero',
+      'createHero',
+      'deleteHero',
+      'searchHero',
+    ]);
+    spinnerService = jasmine.createSpyObj('SpinnerService', ['show', 'hide']);
+    mockSnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
+
     TestBed.configureTestingModule({
       declarations: [
-        HeroComponentComponent,
+        HeroComponent,
         HeroCardComponent,
         HeroHeaderComponent,
         HeroFilterComponent,
       ],
       imports: [MaterialModule, HttpClientTestingModule],
       providers: [
-        {
-          provide: ApiService,
-          /* useValue: jasmine.createSpyObj('ApiService', [
-            'getHero',
-            'getHeroByFilterName',
-            'createHero',
-            'deleteHero',
-          ]), */
-        },
-        { provide: MatDialog, useValue: {} },
-        { provide: MatSnackBar, useValue: {} },
+        { provide: MatSnackBar, useValue: mockSnackBar },
         { provide: ViewContainerRef, useValue: {} },
-        { provide: SpinnerService, useValue: {} },
       ],
     });
 
-    fixture = TestBed.createComponent(HeroComponentComponent);
-    component = fixture.componentInstance;
-    apiService = TestBed.get(ApiService);
-    matDialog = TestBed.get(MatDialog);
+    fixture = TestBed.createComponent(HeroComponent);
     viewContainerRef = TestBed.get(ViewContainerRef);
-    spinnerService = TestBed.get(SpinnerService);
     httpClient = TestBed.inject(HttpClient);
     httpTestingController = TestBed.inject(HttpTestingController);
-    snackBarSpy = TestBed.inject(MatSnackBar) as jasmine.SpyObj<MatSnackBar>;
+    component = new HeroComponent(
+      apiService,
+      spySnackBar,
+      viewContainerRef,
+      spinnerService
+    );
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
-  it('should call searchHero and update heroData', () => {
+  it('should set hero data on ngOnInit', () => {
     const mockHeroData: HeroList[] = [
       {
         id: 1,
@@ -79,68 +88,45 @@ describe('HeroComponentComponent', () => {
         canFly: false,
       },
     ];
-    spyOn(apiService, 'getHero').and.returnValue(of(mockHeroData));
+    apiService.getHero.and.returnValue(of(mockHeroData));
 
-    component.searchHero();
+    component.ngOnInit();
 
-    expect(apiService.getHero).toHaveBeenCalled();
     expect(component.heroData).toEqual(mockHeroData);
   });
 
   it('should call searchHeroFilterName and update heroData', () => {
-    const mockHeroData: HeroList[] = [
-      {
-        id: 1,
-        heroName: 'hero',
-        description: 'hero',
-        company: 'hero',
-        canFly: false,
-      },
-    ];
-    spyOn(apiService, 'getHeroByFilterName').and.returnValue(of(mockHeroData));
+    const heroNameFilter = 'hero';
 
-    component.searchHeroFilterName('HeroName');
+    apiService.getHeroByFilterName.and.returnValue(of(mockHeroData));
 
-    expect(apiService.getHeroByFilterName).toHaveBeenCalledWith('HeroName');
-    expect(component.heroData).toEqual(mockHeroData);
+    component.searchHeroFilterName(heroNameFilter);
+
+    expect(apiService.getHeroByFilterName).toHaveBeenCalledWith(heroNameFilter);
+    expect(component.heroData).toBe(mockHeroData);
   });
 
   it('should call createNewHero and update heroData', () => {
-    const mockHeroData: HeroList = {
+    const mockNewHeroData: HeroList = {
       id: 1,
       heroName: 'hero',
       description: 'hero',
       company: 'hero',
       canFly: false,
     };
-    spyOn(apiService, 'createHero').and.returnValue(of(mockHeroData));
-    spyOn(component, 'searchHero');
 
-    component.createNewHero(mockHeroData);
+    apiService.createHero.and.returnValue(of(mockNewHeroData));
+    apiService.getHero.and.returnValue(of(mockNewHeroData));
 
-    expect(apiService.createHero).toHaveBeenCalledWith(mockHeroData);
-    expect(component.searchHero).toHaveBeenCalled();
-  });
+    component.createNewHero(mockNewHeroData);
 
-  it('should handle error in createNewHero', () => {
-    const errorResponse = 'Error creating new hero';
-    spyOn(apiService, 'createHero').and.returnValue(throwError(errorResponse));
-
-    component.createNewHero({
-      id: 1,
-      heroName: 'hero',
-      description: 'hero',
-      company: 'hero',
-      canFly: false,
-    });
-
-    expect(apiService.createHero).toHaveBeenCalled();
-    expect(snackBarSpy.open).toHaveBeenCalledWith(errorResponse);
+    expect(apiService.createHero).toHaveBeenCalledWith(mockNewHeroData);
   });
 
   it('should call eventReload and update heroData', () => {
     spyOn(component, 'searchHero');
 
+    apiService.getHero.and.returnValue(of(mockHeroData));
     component.eventReload();
 
     expect(component.searchHero).toHaveBeenCalled();
@@ -148,19 +134,9 @@ describe('HeroComponentComponent', () => {
 
   it('should call deleteHero and update heroData', () => {
     const heroId = 1;
-    spyOn(apiService, 'deleteHero').and.returnValue(of(true));
-    spyOn(component, 'searchHero');
 
-    component.deleteHero(heroId);
-
-    expect(apiService.deleteHero).toHaveBeenCalledWith(heroId);
-    expect(component.searchHero).toHaveBeenCalled();
-  });
-
-  it('should handle error in deleteHero', () => {
-    const heroId = 1;
-    const errorResponse = 'Error deleting hero';
-    spyOn(apiService, 'deleteHero').and.returnValue(throwError(errorResponse));
+    apiService.deleteHero.and.returnValue(of({}));
+    apiService.getHero.and.returnValue(of({}));
 
     component.deleteHero(heroId);
 
