@@ -1,0 +1,25 @@
+.spinnerWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background: transparent;
+  z-index: 5;
+
+  .hide {
+    display: none;
+  }
+
+  .show {
+    width: 65px;
+    height: 65px;
+    border: none;
+    outline: none;
+    top: calc(50% - 100px);
+    position: absolute;
+  }
+}

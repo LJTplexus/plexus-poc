@@ -1,20 +1,37 @@
-import { TestBed, getTestBed } from '@angular/core/testing';
-import { tap, forkJoin } from 'rxjs';
+import { ViewContainerRef, ComponentRef } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { forkJoin, tap } from 'rxjs';
 import { HeroSpinnerComponent } from '../components/spinner/hero-spinner.component';
 import { SpinnerService } from './spinner.services';
 
 describe('SpinnerService', () => {
-  let injector: TestBed;
   let service: SpinnerService;
+  let viewContainerRefMock: jasmine.SpyObj<ViewContainerRef>;
+  let componentRefMock: jasmine.SpyObj<ComponentRef<HeroSpinnerComponent>>;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [SpinnerService],
-      declarations: [HeroSpinnerComponent],
-    });
+    const viewContainerRefSpy = jasmine.createSpyObj('ViewContainerRef', [
+      'createComponent',
+    ]);
+    const componentRefSpy = jasmine.createSpyObj('ComponentRef', ['destroy']);
 
-    injector = getTestBed();
-    service = injector.inject(SpinnerService);
+    TestBed.configureTestingModule({
+      providers: [
+        SpinnerService,
+        { provide: ViewContainerRef, useValue: viewContainerRefSpy },
+      ],
+    });
+    service = TestBed.inject(SpinnerService);
+    viewContainerRefMock = TestBed.inject(
+      ViewContainerRef
+    ) as jasmine.SpyObj<ViewContainerRef>;
+    componentRefMock = componentRefSpy as jasmine.SpyObj<
+      ComponentRef<HeroSpinnerComponent>
+    >;
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
   });
 
   it('should show spinner without providing a view container reference', (done) => {

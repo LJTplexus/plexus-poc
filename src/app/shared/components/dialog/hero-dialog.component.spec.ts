@@ -6,13 +6,21 @@ import { ApiService } from 'src/app/core/api/api.service';
 import { HeroDialogComponent } from './hero-dialog.component';
 import { MaterialModule } from '../modules/material/material.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { of } from 'rxjs';
+import { HeroList } from '../../model/hero.interface';
 
 describe('HeroDialogComponent', () => {
   let component: HeroDialogComponent;
   let fixture: ComponentFixture<HeroDialogComponent>;
   let matDialogRefMock: jasmine.SpyObj<MatDialogRef<HeroDialogComponent>>;
   let apiServiceMock: jasmine.SpyObj<ApiService>;
-  let mockDataDialog: 1;
+  const mockHeroData: HeroList = {
+    id: 1,
+    heroName: 'MockHero',
+    description: 'MockDescription',
+    company: 'MockCompany',
+    canFly: false,
+  };
 
   beforeEach(waitForAsync(() => {
     const matDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
@@ -44,6 +52,20 @@ describe('HeroDialogComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should set selectedHero when data.id is defined', () => {
+    apiServiceMock.getHeroByFilterId.and.returnValue(of(mockHeroData));
+
+    expect(component.selectedHero.id).toBe(0);
+    component = new HeroDialogComponent(
+      matDialogRefMock,
+      mockHeroData,
+      new FormBuilder(),
+      {} as MatSnackBar,
+      apiServiceMock
+    );
+    expect(component.selectedHero).toEqual(mockHeroData);
+  });
+
   it('should initialize form with default values', () => {
     expect(component.form).toBeDefined();
     expect(component.form.get('frm_heroName')).toBeTruthy();
@@ -58,16 +80,9 @@ describe('HeroDialogComponent', () => {
   });
 
   it('should submit the form and close the dialog with selectedHero', () => {
-    const selectedHero = {
-      id: 1,
-      heroName: 'Superman',
-      description: 'Man of Steel',
-      company: 'DC',
-      canFly: true,
-    };
-    component.selectedHero = selectedHero;
+    component.selectedHero = mockHeroData;
     component.onSubmit();
-    expect(matDialogRefMock.close).toHaveBeenCalledWith(selectedHero);
+    expect(matDialogRefMock.close).toHaveBeenCalledWith(mockHeroData);
   });
 
   it('should validate form fields', () => {

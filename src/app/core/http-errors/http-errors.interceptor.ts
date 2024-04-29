@@ -14,7 +14,7 @@ export class HttpErrorsInterceptor implements HttpInterceptor {
   constructor(private _snackBar: MatSnackBar) {}
 
   public openSnackBar(message: string) {
-    this._snackBar.open(`Error. ${message}`, '', { duration: 2000 });
+    this._snackBar.open(`Error: ${message}`, '', { duration: 2000 });
   }
 
   intercept(
@@ -23,7 +23,7 @@ export class HttpErrorsInterceptor implements HttpInterceptor {
   ): Observable<HttpEvent<unknown>> {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
-        this.openSnackBar(`Message: ${error.message}`);
+        this.openSnackBar(error.message);
         return throwError(() => error.message);
       })
     );
