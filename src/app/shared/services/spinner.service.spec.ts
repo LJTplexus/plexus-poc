@@ -8,12 +8,16 @@ describe('SpinnerService', () => {
   let service: SpinnerService;
   let viewContainerRefMock: jasmine.SpyObj<ViewContainerRef>;
   let componentRefMock: jasmine.SpyObj<ComponentRef<HeroSpinnerComponent>>;
+  let viewContainerRef: ViewContainerRef;
 
   beforeEach(() => {
     const viewContainerRefSpy = jasmine.createSpyObj('ViewContainerRef', [
       'createComponent',
     ]);
     const componentRefSpy = jasmine.createSpyObj('ComponentRef', ['destroy']);
+    viewContainerRef = jasmine.createSpyObj('ViewContainerRef', [
+      'createComponent',
+    ]);
 
     TestBed.configureTestingModule({
       providers: [
@@ -64,5 +68,23 @@ describe('SpinnerService', () => {
     forkJoin([showObservable, hideObservable]).subscribe(() => {
       done();
     });
+  });
+  it('should show spinner when _ref is not undefined', () => {
+    const componentRef = jasmine.createSpyObj('ComponentRef', ['instance']);
+    service['_ref'] = componentRef;
+
+    const result = service.show(viewContainerRef);
+
+    expect(service['_ref']).toBeTruthy();
+  });
+
+  it('should hide spinner when _ref is not undefined', () => {
+    const componentRef = jasmine.createSpyObj('ComponentRef', ['destroy']);
+    service['_ref'] = componentRef;
+
+    const result = service.hide(viewContainerRef);
+
+    expect(componentRef.destroy).toHaveBeenCalled();
+    expect(service['_ref']).toBeUndefined();
   });
 });

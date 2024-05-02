@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { HeroFilterComponent } from './hero-filter.component';
 import { HeroList } from '../../model/hero.interface';
 import { MaterialModule } from '../modules/material/material.module';

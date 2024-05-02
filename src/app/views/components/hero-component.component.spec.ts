@@ -1,6 +1,6 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { TestBed, ComponentFixture, waitForAsync } from '@angular/core/testing';
 import { HeroComponent } from './hero-component.component';
-import { of } from 'rxjs';
+import { Observable, delay, of } from 'rxjs';
 import { ViewContainerRef } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from 'src/app/core/api/api.service';
@@ -15,30 +15,51 @@ import {
   HttpClientTestingModule,
   HttpTestingController,
 } from '@angular/common/http/testing';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import {
+  MockApiService,
+  MockSnackBar,
+  MockSpinnerService,
+} from '../../shared/services/mock.service';
 
 describe('HeroComponent', () => {
+  const apiServiceMock = new MockApiService();
+  const spinnerServiceMock = new MockSpinnerService();
+  const snackBarMock = new MockSnackBar();
   let component: HeroComponent;
   let fixture: ComponentFixture<HeroComponent>;
   let viewContainerRef: ViewContainerRef;
   let httpClient: HttpClient;
   let httpTestingController: HttpTestingController;
-  let mockSnackBar: any;
+  let mockSnackBar: jasmine.SpyObj<MatSnackBar>;
   let apiService: jasmine.SpyObj<ApiService>;
-  let spinnerService: jasmine.SpyObj<SpinnerService>;
+  let spinnerService: SpinnerService;
 
-  const mockHeroData = [
+  const mockHero = {
+    id: 1,
+    heroName: 'hero',
+    description: 'hero',
+    company: 'hero',
+    canFly: false,
+  };
+
+  const mockHeroData: HeroList[] = [
     {
       id: 1,
-      heroName: 'hero',
+      heroName: 'Batman',
       description: 'hero',
       company: 'hero',
       canFly: false,
     },
   ];
 
-  beforeEach(() => {
-    const spySnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
-    apiService = jasmine.createSpyObj('ApiService', [
+  beforeEach(waitForAsync(() => {
+    const mockSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
+    const spinnerServiceSpy = jasmine.createSpyObj('SpinnerService', [
+      'show',
+      'hide',
+    ]);
+    const apiServiceSpy = jasmine.createSpyObj('ApiService', [
       'getHero',
       'getHeroByFilterName',
       'editHero',
@@ -46,8 +67,6 @@ describe('HeroComponent', () => {
       'deleteHero',
       'searchHero',
     ]);
-    spinnerService = jasmine.createSpyObj('SpinnerService', ['show', 'hide']);
-    mockSnackBar = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     TestBed.configureTestingModule({
       declarations: [
@@ -56,90 +75,120 @@ describe('HeroComponent', () => {
         HeroHeaderComponent,
         HeroFilterComponent,
       ],
-      imports: [MaterialModule, HttpClientTestingModule],
-      providers: [
-        { provide: MatSnackBar, useValue: mockSnackBar },
-        { provide: ViewContainerRef, useValue: {} },
+      imports: [
+        MaterialModule,
+        HttpClientTestingModule,
+        BrowserAnimationsModule,
       ],
-    });
+      providers: [
+        ViewContainerRef,
+        { provide: ApiService, useValue: apiServiceMock },
+        { provide: MatSnackBar, useValue: snackBarMock },
+        { provide: SpinnerService, useValue: spinnerServiceMock },
+      ],
+    }).compileComponents();
+  }));
 
-    fixture = TestBed.createComponent(HeroComponent);
-    viewContainerRef = TestBed.get(ViewContainerRef);
+  beforeEach(() => {
+    viewContainerRef = TestBed.inject(ViewContainerRef);
     httpClient = TestBed.inject(HttpClient);
     httpTestingController = TestBed.inject(HttpTestingController);
-    component = new HeroComponent(
-      apiService,
-      spySnackBar,
-      viewContainerRef,
-      spinnerService
-    );
+    apiService = TestBed.inject(ApiService) as jasmine.SpyObj<ApiService>;
+    fixture = TestBed.createComponent(HeroComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-  it('should set hero data on ngOnInit', () => {
-    const mockHeroData: HeroList[] = [
-      {
-        id: 1,
-        heroName: 'hero',
-        description: 'hero',
-        company: 'hero',
-        canFly: false,
-      },
-    ];
-    apiService.getHero.and.returnValue(of(mockHeroData));
+
+  it('should call setHeroCard method on ngOnInit', (done) => {
+    const apiSpy = spyOn<any>(apiServiceMock, 'getHero')
+      .and.returnValue(of(mockHeroData))
+      .and.callThrough();
+
+    const componentSpy = spyOn(component, 'searchHero').and.callThrough();
+    apiServiceMock
+      .getHero()
+      .pipe(delay(1000))
+      .subscribe((data: any) => {
+        expect(data).not.toBeUndefined();
+        done();
+      });
 
     component.ngOnInit();
-
-    expect(component.heroData).toEqual(mockHeroData);
+    expect(componentSpy).toHaveBeenCalled();
+    expect(apiSpy).toHaveBeenCalled();
   });
 
   it('should call searchHeroFilterName and update heroData', () => {
     const heroNameFilter = 'hero';
 
-    apiService.getHeroByFilterName.and.returnValue(of(mockHeroData));
+    const apiSpy = spyOn<any>(apiServiceMock, 'getHeroByFilterName')
+      .and.returnValue(of(mockHeroData))
+      .and.callThrough();
+    const componentSpy = spyOn(
+      component,
+      'searchHeroFilterName'
+    ).and.callThrough();
 
     component.searchHeroFilterName(heroNameFilter);
 
-    expect(apiService.getHeroByFilterName).toHaveBeenCalledWith(heroNameFilter);
-    expect(component.heroData).toBe(mockHeroData);
+    expect(componentSpy).toHaveBeenCalled();
+    expect(apiSpy).toHaveBeenCalled();
   });
 
   it('should call createNewHero and update heroData', () => {
-    const mockNewHeroData: HeroList = {
-      id: 1,
-      heroName: 'hero',
-      description: 'hero',
-      company: 'hero',
-      canFly: false,
-    };
+    const apiSpyCreate = spyOn(apiServiceMock, 'createHero')
+      .and.returnValue(of(mockHero))
+      .and.callThrough();
+    const apiSpyGet = spyOn(apiServiceMock, 'getHero')
+      .and.returnValue(of(mockHeroData))
+      .and.callThrough();
+    const componentSpy = spyOn(component, 'createNewHero').and.callThrough();
 
-    apiService.createHero.and.returnValue(of(mockNewHeroData));
-    apiService.getHero.and.returnValue(of(mockNewHeroData));
+    component.createNewHero(mockHero);
 
-    component.createNewHero(mockNewHeroData);
+    expect(componentSpy).toHaveBeenCalled();
+    expect(apiSpyCreate).toHaveBeenCalledWith(mockHero);
+    expect(apiSpyGet).toHaveBeenCalled();
+  });
 
-    expect(apiService.createHero).toHaveBeenCalledWith(mockNewHeroData);
+  it('should call editHero data and update heroData', () => {
+    const componentSpyEdit = spyOn(component, 'editHero').and.callThrough();
+    const apiSpy = spyOn(apiServiceMock, 'editHero').and.callThrough();
+    const componentSpySearch = spyOn(component, 'searchHero').and.callThrough();
+
+    component.editHero(mockHero);
+
+    expect(componentSpyEdit).toHaveBeenCalledWith(mockHero);
+    expect(apiSpy).toHaveBeenCalledWith(mockHero.id, mockHero);
+    expect(componentSpySearch).toHaveBeenCalled();
   });
 
   it('should call eventReload and update heroData', () => {
     spyOn(component, 'searchHero');
 
-    apiService.getHero.and.returnValue(of(mockHeroData));
+    spyOn(apiService, 'getHero').and.returnValue(of(mockHeroData));
     component.eventReload();
 
     expect(component.searchHero).toHaveBeenCalled();
   });
 
   it('should call deleteHero and update heroData', () => {
-    const heroId = 1;
+    const componentSpy = spyOn(component, 'deleteHero').and.callThrough();
+    const apiSpyDelete = spyOn(apiServiceMock, 'deleteHero').and.callThrough();
+    const apiSpyGet = spyOn(apiServiceMock, 'getHero').and.callThrough();
 
-    apiService.deleteHero.and.returnValue(of({}));
-    apiService.getHero.and.returnValue(of({}));
+    component.deleteHero(mockHero.id);
 
-    component.deleteHero(heroId);
-
-    expect(apiService.deleteHero).toHaveBeenCalledWith(heroId);
+    expect(componentSpy).toHaveBeenCalledWith(mockHero.id);
+    expect(apiSpyDelete).toHaveBeenCalledWith(mockHero.id);
+    expect(apiSpyGet).toHaveBeenCalled();
   });
 });

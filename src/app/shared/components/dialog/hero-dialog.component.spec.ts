@@ -1,7 +1,6 @@
 import { ComponentFixture, waitForAsync, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from 'src/app/core/api/api.service';
 import { HeroDialogComponent } from './hero-dialog.component';
 import { MaterialModule } from '../modules/material/material.module';
@@ -35,7 +34,6 @@ describe('HeroDialogComponent', () => {
         { provide: MAT_DIALOG_DATA, useValue: {} },
         { provide: MatDialogRef, useValue: matDialogRefSpy },
         { provide: ApiService, useValue: apiServiceSpy },
-        { provide: MatSnackBar, useValue: {} },
         FormBuilder,
       ],
     }).compileComponents();
@@ -60,7 +58,6 @@ describe('HeroDialogComponent', () => {
       matDialogRefMock,
       mockHeroData,
       new FormBuilder(),
-      {} as MatSnackBar,
       apiServiceMock
     );
     expect(component.selectedHero).toEqual(mockHeroData);

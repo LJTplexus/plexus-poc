@@ -46,16 +46,15 @@ describe('HeroCardComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should call setHeroCard function'),
-    () => {
-      component.heroData = mockHeroData;
+  it('should call setHeroCard', () => {
+    component.heroData = mockHeroData;
 
-      spyOn(component, 'setHeroCard');
+    spyOn(component, 'setHeroCard');
 
-      component.setHeroCard();
+    component.setHeroCard();
 
-      expect(component.setHeroCard).toHaveBeenCalled();
-    };
+    expect(component.setHeroCard).toHaveBeenCalled();
+  });
 
   it('should call setHeroCard method on ngOnInit', () => {
     component.heroData = mockHeroData;
